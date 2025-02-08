@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="cs">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Interaktivní Dashboard nástrojů</title>
+    <!-- React, ReactDOM a Babel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+    <!-- Tailwind CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet" />
+    <style>
+      .transition-shadow {
+        transition: box-shadow 0.3s ease-in-out;
+      }
+      .fade-in {
+        animation: fadeIn 0.3s ease-in-out;
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+    </style>
+  </head>
+  <body class="bg-gray-100">
+    <div id="root"></div>
+    <script type="text/babel">
+      // Data – seznam nástrojů rozdělený do kategorií, s useCase a příznaky recommended a tested
+      const tools = {
+        "Kalendáře a plánování": [
+          { 
+            name: "Microsoft Bookings", 
+            security: "Vysoká", 
+            priority: "Vysoká", 
+            web: "microsoft.com/bookings", 
+            description: "Rezervační systém v M365", 
+            usage: "Vhodné při využívání M365",
+            useCase: "Plánování konzultací s povinnými, online rezervace termínů pro nahlížení do spisů, automatické odesílání připomínek před jednáním",
+            recommended: false
+          },
+          { 
+            name: "cal.com (self-hosted)", 
+            security: "Vysoká", 
+            priority: "Střední", 
+            web: "cal.com", 
+            description: "Systém pro plánování schůzek", 
+            usage: "Interní plánování porad týmu, koordinace s vykonavateli, rezervační systém pro advokáty a věřitele",
+            useCase: "Interní plánování porad týmu, koordinace s vykonavateli, rezervační systém pro advokáty a věřitele",
+            recommended: true
+          },
+          { 
+            name: "Boomerang", 
+            security: "Střední", 
+            priority: "Nízká", 
+            web: "boomeranggmail.com", 
+            description: "Plánování emailů, připomínky", 
+            usage: "Pouze pro nekritickou komunikaci",
+            useCase: "Odložené odesílání běžných organizačních emailů, připomínky k nevyřízeným emailům (pouze pro nekritickou komunikaci)",
+            recommended: false
+          },
+          { 
+            name: "Calendly", 
+            security: "Nízká", 
+            priority: "Není doporučeno", 
+            web: "calendly.com", 
+            description: "Automatizované plánování", 
+            usage: "Nevhodné pro úřad",
+            useCase: "Automatizované rezervace schůzek, avšak s nízkou bezpečností – nevhodné pro citlivé agendy.",
+            recommended: false
+          }
+        ],
+        "Automatizace a vývoj": [
+          { 
+            name: "Power Automate", 
+            security: "Vysoká", 
+            priority: "Vysoká", 
+            web: "microsoft.com/power-automate", 
+            description: "M365 automatizace", 
+            usage: "Automatické generování dokumentů a workflow spisů",
+            useCase: "Automatické generování standardizovaných dokumentů, automatizace workflow spisů, kontrola termínů a lhůt, automatické aktualizace rejstříků",
+            recommended: false
+          },
+          { 
+            name: "n8n (self-hosted)", 
+            security: "Vysoká", 
+            priority: "Vysoká", 
+            web: "n8n.io", 
+            description: "Open source automatizace", 
+            usage: "Vhodné při self-hosted",
+            useCase: "Propojení interních systémů, automatizace importu dat, generování statistik a reportů",
+            recommended: true
+          },
+          { 
+            name: "AutoHotkey", 
+            security: "Vysoká", 
+            priority: "Střední", 
+            web: "autohotkey.com", 
+            description: "Windows automatizace", 
+            usage: "Vhodné pro rutinní úkony",
+            useCase: "Vytváření rychlých textových zkratek, automatizace rutinních úkonů, rychlé vyplňování formulářů",
+            recommended: false
+          },
+          { 
+            name: "Zapier", 
+            security: "Nízká", 
+            priority: "Není doporučeno", 
+            web: "zapier.com", 
+            description: "Cloud automatizace", 
+            usage: "Nevhodné pro úřad",
+            useCase: "Propojování cloudových aplikací – nevhodné pro práci s citlivými daty.",
+            recommended: false
+          }
+        ],
+        "Produktivita a textové nástroje": [
+          { 
+            name: "ProKeys", 
+            security: "Vysoká", 
+            priority: "Vysoká", 
+            web: "prokeys.org", 
+            description: "Open source textové zkratky", 
+            usage: "Šablony pro právní texty, rychlé vkládání předpisů, automatické doplňování adres",
+            useCase: "Šablony pro standardní právní texty, rychlé vkládání předpisů, automatické doplňování adres institucí",
+            recommended: true
+          },
+          { 
+            name: "Raycast", 
+            security: "Střední", 
+            priority: "Nízká", 
+            web: "raycast.com", 
+            description: "Mac launcher", 
+            usage: "Rychlé vyhledávání v interních dokumentech, spouštění aplikací a skriptů",
+            useCase: "Rychlé vyhledávání a spouštění aplikací pro nekritické funkce",
+            recommended: false
+          },
+          { 
+            name: "TextBlaze", 
+            security: "Nízká", 
+            priority: "Není doporučeno", 
+            web: "textblaze.com", 
+            description: "Cloud textové šablony", 
+            usage: "Nevhodné pro úřad",
+            useCase: "Cloudové textové šablony, které nesplňují bezpečnostní požadavky",
+            recommended: false
+          },
+          { 
+            name: "Paste", 
+            security: "Střední", 
+            priority: "Nízká", 
+            web: "pasteapp.com", 
+            description: "Správa kopírovaného obsahu", 
+            usage: "Pouze pro nekritická data",
+            useCase: "Správa a organizace kopírovaného obsahu",
+            recommended: false
+          }
+        ],
+        "Organizace a správa oken": [
+          { 
+            name: "Microsoft PowerToys", 
+            security: "Vysoká", 
+            priority: "Vysoká", 
+            web: "microsoft.com/powertoys", 
+            description: "Vylepšení Windows funkcí", 
+            usage: "Efektivní práce s více monitory, rychlé přepínání, organizace pracovní plochy",
+            useCase: "Efektivní práce s více monitory, rychlé přepínání mezi aplikacemi a organizace pracovní plochy",
+            recommended: true
+          },
+          { 
+            name: "Alt-tab-macos", 
+            security: "Vysoká", 
+            priority: "Vysoká", 
+            web: "alt-tab-macos.netlify.app", 
+            description: "Windows-style přepínání oken", 
+            usage: "Rychlé přepínání mezi dokumenty a aplikacemi při práci",
+            useCase: "Rychlé přepínání mezi dokumenty při zpracování spisů, efektivní práce s více aplikacemi",
+            recommended: false
+          },
+          { 
+            name: "Magnet", 
+            security: "Vysoká", 
+            priority: "Vysoká", 
+            web: "apps.apple.com", 
+            description: "Organizace oken na Macu", 
+            usage: "Vhodné pro produktivitu",
+            useCase: "Organizace oken na Macu pro lepší pracovní přehled",
+            recommended: false
+          }
+        ],
+        "AI nástroje a asistenti": [
+          { 
+            name: "ChatGPT", 
+            security: "Nízká", 
+            priority: "Není doporučeno", 
+            web: "openai.com", 
+            description: "Generativní AI", 
+            usage: "Pouze pro obecné dotazy",
+            useCase: "ChatGPT slouží jako generativní AI pro tvorbu textů a odpovědi na dotazy.",
+            recommended: true,
+            tested: true
+          },
+          { 
+            name: "Claude", 
+            security: "Nízká", 
+            priority: "Není doporučeno", 
+            web: "anthropic.com", 
+            description: "Generativní AI", 
+            usage: "Pouze pro obecné dotazy",
+            useCase: "Claude poskytuje generativní AI schopnosti pro obecné dotazy.",
+            recommended: true,
+            tested: true
+          },
+          { 
+            name: "Copilot", 
+            security: "Nízká", 
+            priority: "Není doporučeno", 
+            web: "github.com/features/copilot", 
+            description: "AI programování", 
+            usage: "Nevhodné pro interní kód",
+            useCase: "Copilot asistuje při psaní kódu, ale není doporučen pro interní použití.",
+            recommended: false,
+            tested: true
+          },
+          { 
+            name: "Gemini", 
+            security: "Nízká", 
+            priority: "Není doporučeno", 
+            web: "google.com/gemini", 
+            description: "Generativní AI", 
+            usage: "Nevhodné pro úřad",
+            useCase: "Gemini je nová generativní AI, avšak bezpečnostní omezení ji nedělají vhodnou pro úřad.",
+            recommended: true,
+            tested: true
+          },
+          { 
+            name: "Perplexity", 
+            security: "Nízká", 
+            priority: "Není doporučeno", 
+            web: "perplexity.ai", 
+            description: "AI research", 
+            usage: "Nevhodné pro úřad",
+            useCase: "Perplexity se využívá pro AI research, ale není doporučeno pro práci s citlivými daty.",
+            recommended: false
+          },
+          { 
+            name: "NotebookLM", 
+            security: "Nízká", 
+            priority: "Není doporučeno", 
+            web: "notebooklm.google.com", 
+            description: "AI asistent pro práci s dokumenty, generování shrnutí, analýza textu, citace z dokumentů", 
+            usage: "Nevhodné pro úřad", 
+            useCase: "Je ideální pro interní analýzu spisů, generování dokumentů a právní rešerše.",
+            recommended: false,
+            tested: true
+          },
+          { 
+            name: "Gamma.ai", 
+            security: "Nízká", 
+            priority: "Není doporučeno", 
+            web: "gamma.app", 
+            description: "AI nástroj pro tvorbu prezentací, automatické generování obsahu, vizuální návrhy", 
+            usage: "Nevhodné pro úřad", 
+            useCase: "Se hodí pro reporting, vizualizaci trendů, interní školení a prezentace složitých procesů.",
+            recommended: false,
+            tested: true
+          }
+        ],
+        "Přepisy a sumarizace": [
+          { 
+            name: "Fireflies.ai", 
+            security: "Nízká", 
+            priority: "Není doporučeno", 
+            web: "fireflies.ai", 
+            description: "Přepisy s rozpoznáním mluvy", 
+            usage: "Nevhodné pro důvěrná jednání",
+            useCase: "Automatické přepisy jednání – nevhodné pro citlivá setkání.",
+            recommended: false,
+            tested: true
+          },
+          { 
+            name: "Harpa.ai", 
+            security: "Nízká", 
+            priority: "Není doporučeno", 
+            web: "harpa.ai", 
+            description: "Web sumarizace", 
+            usage: "Nevhodné pro úřad",
+            useCase: "Shrnutí webového obsahu pomocí AI, nevhodné pro citlivé prostředí.",
+            recommended: false
+          },
+          { 
+            name: "Monica", 
+            security: "Nízká", 
+            priority: "Není doporučeno", 
+            web: "monica.im", 
+            description: "Komplexní AI asistent", 
+            usage: "Nevhodné pro úřad",
+            useCase: "AI asistent pro organizaci úkolů – nevhodný pro práci s citlivými informacemi.",
+            recommended: false
+          },
+          { 
+            name: "Otter.ai", 
+            security: "Nízká", 
+            priority: "Není doporučeno", 
+            web: "otter.ai", 
+            description: "Real-time přepisy", 
+            usage: "Nevhodné pro úřad",
+            useCase: "Přepisy v reálném čase pomocí AI, s nízkou bezpečností.",
+            recommended: false
+          }
+        ],
+        "Dokumentace a záznamy": [
+          { 
+            name: "Cleanshot", 
+            security: "Vysoká", 
+            priority: "Vysoká", 
+            web: "getcleanshot.com", 
+            description: "Screenshot nástroj pro Mac", 
+            usage: "Vhodné pro dokumentaci",
+            useCase: "Dokumentace stavu webových stránek, zachycení důkazních materiálů, tvorba návodů pro interní postupy.",
+            recommended: true
+          },
+          { 
+            name: "Flameshot", 
+            security: "Vysoká", 
+            priority: "Vysoká", 
+            web: "flameshot.org", 
+            description: "Multiplatformní screenshoty", 
+            usage: "Vhodné pro dokumentaci",
+            useCase: "Pořizování snímků obrazovky pro dokumentaci exekučních spisů a zachycení chybových hlášení.",
+            recommended: false
+          },
+          { 
+            name: "Screenpresso", 
+            security: "Vysoká", 
+            priority: "Vysoká", 
+            web: "screenpresso.com", 
+            description: "Pokročilé screenshoty Windows", 
+            usage: "Vhodné pro dokumentaci",
+            useCase: "Dokumentace procesů pro interní školení, zachycení důkazů z online zdrojů, tvorba dokumentace postupů.",
+            recommended: false
+          }
+        ],
+        "Spolupráce a plánování": [
+          { 
+            name: "Miro", 
+            security: "Nízká", 
+            priority: "Není doporučeno", 
+            web: "miro.com", 
+            description: "Digitální tabule", 
+            usage: "Nevhodné pro citlivé plánování",
+            useCase: "Digitální tabule pro spolupráci, nevhodná pro citlivé plánování.",
+            recommended: true,
+            tested: true
+          }
+        ]
+      };
+
+      // Komponenty pro badge
+      const SecurityBadge = ({ level }) => {
+        const colors = {
+          "Vysoká": "bg-green-100 text-green-800",
+          "Střední": "bg-yellow-100 text-yellow-800",
+          "Nízká": "bg-red-100 text-red-800"
+        };
+        return (
+          <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${colors[level] || 'bg-gray-100 text-gray-800'}`}>
+            {level}
+          </span>
+        );
+      };
+
+      const PriorityBadge = ({ level }) => {
+        const colors = {
+          "Vysoká": "bg-green-100 text-green-800",
+          "Střední": "bg-yellow-100 text-yellow-800",
+          "Nízká": "bg-red-100 text-red-800",
+          "Není doporučeno": "bg-gray-100 text-gray-800"
+        };
+        return (
+          <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${colors[level] || 'bg-gray-100 text-gray-800'}`}>
+            {level}
+          </span>
+        );
+      };
+
+      // Modální okno – zobrazuje pouze useCase vybraného nástroje
+      const Modal = ({ tool, category, onClose }) => {
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+            <div className="bg-white rounded-lg shadow-lg p-6 w-11/12 md:w-1/2 relative">
+              <button onClick={onClose} className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+              <h2 className="text-xl font-bold mb-4">{tool.name} – Use Case</h2>
+              <p className="text-gray-700">{tool.useCase}</p>
+            </div>
+          </div>
+        );
+      };
+
+      // Komponenta ComplexAnalysis – převzatá z původního HTML, bez závěrečného bloku s doporučeními;
+      // doporučené nástroje jsou zvýrazněny decentně zelenou barvou (bg-green-50)
+      const ComplexAnalysis = () => (
+        <div className="container mx-auto p-4">
+          <h1 className="text-3xl font-bold mb-6">Komplexní analýza nástrojů pro exekutorský úřad</h1>
+          {Object.entries(tools).map(([category, categoryTools]) => (
+            <div key={category} className="mb-8">
+              <h2 className="text-2xl font-bold mb-4">{category}</h2>
+              <table className="w-full border-collapse bg-white">
+                <thead>
+                  <tr>
+                    <th className="border border-gray-300 p-3 text-left bg-gray-100 font-bold">Nástroj</th>
+                    <th className="border border-gray-300 p-3 text-left bg-gray-100 font-bold">Web</th>
+                    <th className="border border-gray-300 p-3 text-left bg-gray-100 font-bold">Kategorie</th>
+                    <th className="border border-gray-300 p-3 text-left bg-gray-100 font-bold">Bezpečnost</th>
+                    <th className="border border-gray-300 p-3 text-left bg-gray-100 font-bold">Popis a funkce</th>
+                    <th className="border border-gray-300 p-3 text-left bg-gray-100 font-bold">Doporučené využití</th>
+                    <th className="border border-gray-300 p-3 text-left bg-gray-100 font-bold">Priorita</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {categoryTools.map(tool => (
+                    <tr key={tool.name} className={`hover:bg-gray-200 ${tool.recommended ? "bg-green-50" : ""}`}>
+                      <td className="border border-gray-300 p-3">
+                        {tool.name}{" "}
+                        {tool.recommended && <span className="text-yellow-500" title="Doporučeno">★</span>}
+                        {tool.tested && <span className="ml-1" title="Testováno">🔨</span>}
+                      </td>
+                      <td className="border border-gray-300 p-3">
+                        <a href={`https://${tool.web}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                          {tool.web}
+                        </a>
+                      </td>
+                      <td className="border border-gray-300 p-3">{category}</td>
+                      <td className="border border-gray-300 p-3">{tool.security}</td>
+                      <td className="border border-gray-300 p-3">{tool.description}</td>
+                      <td className="border border-gray-300 p-3">{tool.usage}</td>
+                      <td className="border border-gray-300 p-3">{tool.priority}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ))}
+        </div>
+      );
+
+      // Nová komponenta Explanations – třetí záložka s vysvětlením hodnocení a ikon
+      const Explanations = () => (
+        <div className="container mx-auto p-6 bg-white rounded-lg shadow">
+          <h1 className="text-3xl font-bold mb-6">Vysvětlivky k hodnocení</h1>
+          <div className="mb-6">
+            <h2 className="text-2xl font-semibold mb-2">Hodnocení bezpečnosti</h2>
+            <ul className="list-disc pl-5 text-gray-700">
+              <li><strong>Vysoká</strong>: Nástroj využívá robustní bezpečnostní opatření a je vhodný pro práci s citlivými daty.</li>
+              <li><strong>Střední</strong>: Bezpečnostní opatření jsou dostačující pro běžné použití, ale doporučuje se používat pouze pro nekritická data.</li>
+              <li><strong>Nízká</strong>: Bezpečnostní úroveň je nedostatečná a nástroj není vhodný pro zpracování citlivých informací.</li>
+            </ul>
+          </div>
+          <div className="mb-6">
+            <h2 className="text-2xl font-semibold mb-2">Hodnocení implementace</h2>
+            <ul className="list-disc pl-5 text-gray-700">
+              <li><strong>Vysoká</strong>: Nástroj je snadno integrovatelný, stabilní a přináší významnou přidanou hodnotu; implementace je velmi doporučená.</li>
+              <li><strong>Střední</strong>: Implementace je možná, ale může vyžadovat dodatečná nastavení či úpravy.</li>
+              <li><strong>Nízká</strong>: Nástroj není prioritní pro implementaci, případně vyžaduje výrazné úpravy nebo dodatečné zabezpečení.</li>
+              <li><strong>Není doporučeno</strong>: Použití nástroje se nedoporučuje vzhledem k omezením či nízké bezpečnosti.</li>
+            </ul>
+          </div>
+          <div>
+            <h2 className="text-2xl font-semibold mb-2">Ikony</h2>
+            <ul className="list-disc pl-5 text-gray-700">
+              <li>
+                <span title="Doporučeno">★</span> – Označuje nástroje, které jsou doporučené.
+              </li>
+              <li>
+                <span title="Testováno">🔨</span> – Označuje nástroje, které jsou testovány.
+              </li>
+            </ul>
+          </div>
+        </div>
+      );
+
+      // Hlavní komponenta aplikace s přepínáním záložek: Dashboard, Komplexní analýza a Vysvětlivky
+      function App() {
+        const [activeTab, setActiveTab] = React.useState("dashboard");
+        const [selectedCategory, setSelectedCategory] = React.useState("všechny");
+        const [selectedSecurity, setSelectedSecurity] = React.useState("všechny");
+        const [selectedPriority, setSelectedPriority] = React.useState("všechny");
+        const [searchQuery, setSearchQuery] = React.useState("");
+        const [selectedTool, setSelectedTool] = React.useState(null);
+        const [selectedToolCategory, setSelectedToolCategory] = React.useState("");
+
+        // Nové stavy pro filtrování doporučených a testovaných nástrojů
+        const [filterRecommended, setFilterRecommended] = React.useState(false);
+        const [filterTested, setFilterTested] = React.useState(false);
+
+        const categories = ["všechny", ...Object.keys(tools)];
+        const securityLevels = ["všechny", "Vysoká", "Střední", "Nízká"];
+        const priorityLevels = ["všechny", "Vysoká", "Střední", "Nízká", "Není doporučeno"];
+
+        const FilterSelect = ({ label, value, options, onChange }) => (
+          <div className="flex flex-col">
+            <label className="text-sm font-medium mb-1">{label}</label>
+            <select
+              value={value}
+              onChange={(e) => onChange(e.target.value)}
+              className="bg-white border border-gray-300 rounded px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              {options.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </div>
+        );
+
+        const handleCardClick = (tool, category) => {
+          setSelectedTool(tool);
+          setSelectedToolCategory(category);
+        };
+
+        // Rendering karet pro Dashboard
+        const renderCards = () => (
+          <div>
+            <div className="mb-4 text-sm text-gray-600">★ = Doporučeno, 🔨 = Testováno</div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {Object.entries(tools).map(([category, categoryTools]) => {
+                if (selectedCategory !== "všechny" && category !== selectedCategory) return null;
+                return categoryTools
+                  .filter((tool) => {
+                    const matchesSecurity = selectedSecurity === "všechny" || tool.security === selectedSecurity;
+                    const matchesPriority = selectedPriority === "všechny" || tool.priority === selectedPriority;
+                    const matchesSearch =
+                      searchQuery === "" ||
+                      tool.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                      tool.description.toLowerCase().includes(searchQuery.toLowerCase());
+                    const matchesRecommended = !filterRecommended || tool.recommended;
+                    const matchesTested = !filterTested || tool.tested;
+                    return matchesSecurity && matchesPriority && matchesSearch && matchesRecommended && matchesTested;
+                  })
+                  .map((tool) => (
+                    <div
+                      key={tool.name}
+                      className="bg-white rounded-lg shadow-sm hover:shadow-lg transition-transform transform hover:scale-105 cursor-pointer p-6"
+                      onClick={() => handleCardClick(tool, category)}
+                    >
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <h3 className="text-lg font-semibold mb-1">
+                            {tool.name}{" "}
+                            {tool.recommended && <span className="text-yellow-500" title="Doporučeno">★</span>}
+                            {tool.tested && <span className="ml-1" title="Testováno">🔨</span>}
+                          </h3>
+                          <a
+                            href={`https://${tool.web}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-blue-600 hover:underline"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {tool.web}
+                          </a>
+                        </div>
+                        <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                          {category}
+                        </span>
+                      </div>
+                      <p className="text-gray-600 text-sm mb-4">{tool.description}</p>
+                      <div className="flex gap-2">
+                        <SecurityBadge level={tool.security} />
+                        <PriorityBadge level={tool.priority} />
+                      </div>
+                    </div>
+                  ));
+              })}
+            </div>
+          </div>
+        );
+
+        return (
+          <div className="p-6 max-w-7xl mx-auto">
+            {/* Záložkový přepínač */}
+            <div className="mb-8 flex gap-4 border-b pb-2">
+              <button
+                className={`px-4 py-2 font-medium ${activeTab === "dashboard" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-600"}`}
+                onClick={() => setActiveTab("dashboard")}
+              >
+                Dashboard
+              </button>
+              <button
+                className={`px-4 py-2 font-medium ${activeTab === "analysis" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-600"}`}
+                onClick={() => setActiveTab("analysis")}
+              >
+                Komplexní analýza
+              </button>
+              <button
+                className={`px-4 py-2 font-medium ${activeTab === "explanations" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-600"}`}
+                onClick={() => setActiveTab("explanations")}
+              >
+                Vysvětlivky
+              </button>
+            </div>
+
+            {activeTab === "dashboard" && (
+              <>
+                <div className="mb-8 bg-gray-50 p-4 rounded-lg flex flex-col md:flex-row items-center gap-4">
+                  <input
+                    type="text"
+                    placeholder="Hledat nástroje..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full md:w-1/3 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <FilterSelect label="Kategorie" value={selectedCategory} options={categories} onChange={setSelectedCategory} />
+                  <FilterSelect label="Bezpečnost" value={selectedSecurity} options={securityLevels} onChange={setSelectedSecurity} />
+                  <FilterSelect label="Priorita" value={selectedPriority} options={priorityLevels} onChange={setSelectedPriority} />
+                  {/* Nové checkboxy pro filtrování doporučených a testovaných nástrojů */}
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={filterRecommended}
+                      onChange={(e) => setFilterRecommended(e.target.checked)}
+                      className="mr-1"
+                    />
+                    Doporučené
+                  </label>
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={filterTested}
+                      onChange={(e) => setFilterTested(e.target.checked)}
+                      className="mr-1"
+                    />
+                    Testováno
+                  </label>
+                </div>
+                {renderCards()}
+              </>
+            )}
+
+            {activeTab === "analysis" && <ComplexAnalysis />}
+
+            {activeTab === "explanations" && <Explanations />}
+
+            {selectedTool && (
+              <Modal tool={selectedTool} category={selectedToolCategory} onClose={() => setSelectedTool(null)} />
+            )}
+          </div>
+        );
+      }
+
+      ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+  </body>
+</html>
